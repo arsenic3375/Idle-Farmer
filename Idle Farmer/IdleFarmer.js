@@ -122,7 +122,7 @@ class Cell {
         /*this.addEventListener("mouseover", () => {
             this.dispatch(new CustomEvent("openCellMenu", {detail: {cell: this}}));
         });*/
-        this.clicked = false
+        //this.clicked = false
         this.addEventListener("click", () => {
             this.clicked = !this.clicked;
             if(this.clicked) {
@@ -148,7 +148,7 @@ class Cell {
             this.harvest();
         }
         else {
-            //this.dispatch(new CustomEvent("grow", {detail: {crop: this.crop}}));
+            this.dispatch(new CustomEvent("grow", {detail: {cell: this}}));
             this.crop.grow();
         }
         this.crop.refresh();
@@ -177,6 +177,16 @@ class Cell {
         this.eventListeners.push(new EventListener(type, listener));
     }
 
+    removeEventListener(type, listener) {
+        //console.log(this.eventListeners);
+        this.eventListeners.forEach((element) => {
+            if(element.type === type && element.listener.toString() === listener.toString()) {
+                this.eventListeners.splice(this.eventListeners.indexOf(element), 1)
+            }
+        });
+        //console.log(this.eventListeners);
+    }
+
     dispatch(event) { 
         this.eventListeners.forEach((eventListener) => {
             if(eventListener.type === event.type) {
@@ -186,7 +196,9 @@ class Cell {
     }
 
     refresh() {
-        document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        if(document.getElementById(this.id) != null) {
+            document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        }
     }
 
     renderHtmlElement() {
@@ -198,8 +210,7 @@ class Cell {
 
         this.eventListeners.forEach((element) => {
                 td.addEventListener(element.type, element.listener)
-            }
-        );
+        });
         
         return td;
     }   
@@ -267,7 +278,9 @@ class Row {
     }
 
     refresh() {
-        document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        if(document.getElementById(this.id) != null) {
+            document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        }
     }
 
     renderHtmlElement() {
@@ -352,7 +365,9 @@ class Table {
     }
 
     refresh() {
-        document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        if(document.getElementById(this.id) != null) {
+            document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        }
     }
 
     renderHtmlElement() {
@@ -429,7 +444,9 @@ class Farm{
     }
 
     refresh() {
-        document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        if(document.getElementById(this.id) != null) {
+            document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        }
     }
 
     renderHtmlElement() {
@@ -517,7 +534,9 @@ class Farms {
     }
 
     refresh() {
-        document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        if(document.getElementById(this.id) != null) {
+            document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        }
     }
 
     renderHtmlElement() {
@@ -625,10 +644,10 @@ class CellMenu {
         this.selection = [];
     }
 
-    updateInformation(cell) {
-        this.cell = cell;
+    updateInformation() {
         this.cropName.text = this.cell.crop.name + ": ";
         this.cropMaturity.text = this.cell.crop.maturity + "%";
+        this.refresh();
     }
 
     updateSelection(items) {
@@ -637,14 +656,19 @@ class CellMenu {
             this.selection[i] = new Button(this.id + items[i] + "_" + items[i].name + "Button", items[i].icon);
             //this.selection[i].addEventListener("click", this.cell.plant(items[i].name));
         }
+        this.refresh();
     }
 
     open(detail) {
-        this.updateInformation(detail.cell);
+        this.cell = detail.cell;
+        this.cell.addEventListener("grow", this.updateInformation.bind(this));
+
+        this.updateInformation();
         document.body.appendChild(this.renderHtmlElement());
     }
 
     close(detail) {
+        this.cell.removeEventListener("grow", this.updateInformation.bind(this));
         document.body.removeChild(document.getElementById(this.id));
     }
 
@@ -662,7 +686,9 @@ class CellMenu {
     }
 
     refresh() {
-        document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        if(document.getElementById(this.id) != null) {
+            document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        }
     }
 
     renderHtmlElement() {
