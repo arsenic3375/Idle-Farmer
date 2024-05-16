@@ -1,0 +1,51 @@
+html{
+  font-family: monospace;
+}
+
+
+.cellMenu {
+  /*opacity: 1;
+  visibility: visible;*/
+  position: absolute;
+  background-color: #e9e9ed;
+  border: 1px solid darkgrey;
+  /*color: white;*/
+}
+
+/*.menu_visible {
+  opacity: 1;
+  visibility: visible;
+  position: absolute;
+  background-color: grey;
+  color: white;
+  margin: 0%;
+  padding: 0%;
+}*/
+
+.crop {
+  margin: 0%;
+  padding: 0%;
+  text-align: center;
+}
+
+.cell {
+  border-collapse: collapse;
+  border: 1px solid darkgrey;
+  margin: 0%;
+  padding: 0%;
+
+  width: 40px;
+  height: 40px;
+}
+
+.row {
+  margin: 0%;
+  padding: 0%;
+}
+
+.table {
+  border-collapse: collapse;
+  border: 1px solid grey;
+  margin: 0%;
+  padding: 0%;
+}
