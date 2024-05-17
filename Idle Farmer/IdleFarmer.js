@@ -75,7 +75,9 @@ class Crop {
     }
 
     refresh() {
-        document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        if(document.getElementById(this.id) != null) {
+            document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        }
     }
 
     renderHtmlElement() {
@@ -122,8 +124,9 @@ class Cell {
         /*this.addEventListener("mouseover", () => {
             this.dispatch(new CustomEvent("openCellMenu", {detail: {cell: this}}));
         });*/
-        //this.clicked = false
+        this.clicked = false
         this.addEventListener("click", () => {
+            this.dispatch(new CustomEvent("closeCellMenu", {detail: {cell: this}}));
             this.clicked = !this.clicked;
             if(this.clicked) {
                 this.dispatch(new CustomEvent("openCellMenu", {detail: {cell: this}}));
@@ -139,8 +142,9 @@ class Cell {
     }
 
     harvest() {
-        this.dispatch(new CustomEvent("harvest", {detail: {crop: this.crop}}));
         this.crop.harvest();
+        this.dispatch(new CustomEvent("harvest", {detail: {crop: this.crop}}));
+        console.log("❗")
     }
 
     grow() {
@@ -148,8 +152,8 @@ class Cell {
             this.harvest();
         }
         else {
-            this.dispatch(new CustomEvent("grow", {detail: {cell: this}}));
             this.crop.grow();
+            this.dispatch(new CustomEvent("grow", {detail: {cell: this}}));
         }
         this.crop.refresh();
 
@@ -178,13 +182,11 @@ class Cell {
     }
 
     removeEventListener(type, listener) {
-        //console.log(this.eventListeners);
         this.eventListeners.forEach((element) => {
             if(element.type === type && element.listener.toString() === listener.toString()) {
                 this.eventListeners.splice(this.eventListeners.indexOf(element), 1)
             }
         });
-        //console.log(this.eventListeners);
     }
 
     dispatch(event) { 
@@ -267,6 +269,14 @@ class Row {
     //will be in a seperate class
     addEventListener(type, listener) {
         this.eventListeners.push(new EventListener(type, listener));
+    }
+
+    removeEventListener(type, listener) {
+        this.eventListeners.forEach((element) => {
+            if(element.type === type && element.listener.toString() === listener.toString()) {
+                this.eventListeners.splice(this.eventListeners.indexOf(element), 1)
+            }
+        });
     }
 
     dispatch(event) { 
@@ -356,6 +366,14 @@ class Table {
         this.eventListeners.push(new EventListener(type, listener));
     }
 
+    removeEventListener(type, listener) {
+        this.eventListeners.forEach((element) => {
+            if(element.type === type && element.listener.toString() === listener.toString()) {
+                this.eventListeners.splice(this.eventListeners.indexOf(element), 1)
+            }
+        });
+    }
+
     dispatch(event) { 
         this.eventListeners.forEach((eventListener) => {
             if(eventListener.type === event.type) {
@@ -433,6 +451,14 @@ class Farm{
     //will be in a seperate class
     addEventListener(type, listener) {
         this.eventListeners.push(new EventListener(type, listener));
+    }
+
+    removeEventListener(type, listener) {
+        this.eventListeners.forEach((element) => {
+            if(element.type === type && element.listener.toString() === listener.toString()) {
+                this.eventListeners.splice(this.eventListeners.indexOf(element), 1)
+            }
+        });
     }
 
     dispatch(event) { 
@@ -523,6 +549,14 @@ class Farms {
     //will be in a seperate class
     addEventListener(type, listener) {
         this.eventListeners.push(new EventListener(type, listener));
+    }
+
+    removeEventListener(type, listener) {
+        this.eventListeners.forEach((element) => {
+            if(element.type === type && element.listener.toString() === listener.toString()) {
+                this.eventListeners.splice(this.eventListeners.indexOf(element), 1)
+            }
+        });
     }
     
     dispatch(event) { 
@@ -654,7 +688,7 @@ class CellMenu {
         this.selection = [];
         for(let i = 0; i < items.length; i++) {
             this.selection[i] = new Button(this.id + items[i] + "_" + items[i].name + "Button", items[i].icon);
-            //this.selection[i].addEventListener("click", this.cell.plant(items[i].name));
+            this.selection[i].addEventListener("click", () => {this.cell.plant(items[i].name)});
         }
         this.refresh();
     }
@@ -662,6 +696,7 @@ class CellMenu {
     open(detail) {
         this.cell = detail.cell;
         this.cell.addEventListener("grow", this.updateInformation.bind(this));
+        this.cell.addEventListener("harvest", this.updateInformation.bind(this));
 
         this.updateInformation();
         document.body.appendChild(this.renderHtmlElement());
@@ -669,7 +704,11 @@ class CellMenu {
 
     close(detail) {
         this.cell.removeEventListener("grow", this.updateInformation.bind(this));
-        document.body.removeChild(document.getElementById(this.id));
+        this.cell.removeEventListener("harvest", this.updateInformation.bind(this));
+
+        if(document.getElementById(this.id) != null) {
+            document.body.removeChild(document.getElementById(this.id));
+        }
     }
 
     //will be in a seperate class
@@ -677,6 +716,14 @@ class CellMenu {
         this.eventListeners.push(new EventListener(type, listener));
     }
     
+    removeEventListener(type, listener) {
+        this.eventListeners.forEach((element) => {
+            if(element.type === type && element.listener.toString() === listener.toString()) {
+                this.eventListeners.splice(this.eventListeners.indexOf(element), 1)
+            }
+        });
+    }
+
     dispatch(event) { 
         this.eventListeners.forEach((eventListener) => {
             if(eventListener.type === event.type) {
