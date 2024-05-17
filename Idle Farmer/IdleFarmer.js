@@ -688,7 +688,10 @@ class CellMenu {
         this.selection = [];
         for(let i = 0; i < items.length; i++) {
             this.selection[i] = new Button(this.id + items[i] + "_" + items[i].name + "Button", items[i].icon);
-            this.selection[i].addEventListener("click", () => {this.cell.plant(items[i].name)});
+            this.selection[i].addEventListener("click", () => {
+                this.cell.plant(items[i].name);
+                this.updateInformation();
+            });
         }
         this.refresh();
     }
