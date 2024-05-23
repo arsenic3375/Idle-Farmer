@@ -5,16 +5,46 @@ class EventListener {
     }
 }
 
-class Text {
-    constructor(id, type, text) {
+class Element {
+    constructor(id) {
         this.id = id;
-        this.type = type;
-        this.text = text;
+        this.eventListeners = [];
     }
 
-    //will be in a seperate class
+    addEventListener(type, listener) {
+        this.eventListeners.push(new EventListener(type, listener));
+    }
+
+    removeEventListener(type, listener) {
+        this.eventListeners.forEach((element) => {
+            if(element.type === type && element.listener.toString() === listener.toString()) {
+                this.eventListeners.splice(this.eventListeners.indexOf(element), 1)
+            }
+        });
+    }
+
+    dispatch(event) { 
+        this.eventListeners.forEach((eventListener) => {
+            if(eventListener.type === event.type) {
+                eventListener.listener(event.detail); 
+            }
+        }); 
+    }
+
     refresh() {
-        document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        if(document.getElementById(this.id) != null) {
+            document.getElementById(this.id).replaceWith(this.renderHtmlElement());
+        }
+    }
+
+    renderHtmlElement() {}   
+}
+
+class Text extends Element{
+    constructor(id, type, text) {
+        super(id);
+        this.type = type;
+        this.text = text;
     }
 
     renderHtmlElement() {
@@ -26,11 +56,10 @@ class Text {
     }
 }
 
-class Button {
+class Button extends Element{
     constructor(id, text) {
-        this.id = id;
+        super(id);
         this.text = text;
-        this.eventListeners = [];
     }
 
     //will be in a seperate class
@@ -55,9 +84,9 @@ class Button {
     }
 }
 
-class Crop {
+class Crop extends Element{
     constructor(id) {
-        this.id = id;
+        super(id);
         this.growthRate = 0;
         this.yeild = 0;
         this.maturity = 0;
@@ -66,18 +95,11 @@ class Crop {
     }
 
     harvest() {
-        //69 
         this.maturity %= 100;
     }
 
     grow() {
         this.maturity += this.growthRate;
-    }
-
-    refresh() {
-        if(document.getElementById(this.id) != null) {
-            document.getElementById(this.id).replaceWith(this.renderHtmlElement());
-        }
     }
 
     renderHtmlElement() {
@@ -113,12 +135,11 @@ class Carrot extends Crop {
     }
 }
 
-class Cell {
-    constructor(id){
-        this.id = id;
+class Cell extends Element{
+    constructor(id, parity){
+        super(id);
         this.crop = new Carrot(this.id + "_crop");
-        
-        this.eventListeners = [];
+        this.parity = parity;
 
         this.openMenu = false;
         /*this.addEventListener("mouseover", () => {
@@ -176,33 +197,6 @@ class Cell {
         this.crop.refresh();
     }
 
-    //will be in a seperate class
-    addEventListener(type, listener) {
-        this.eventListeners.push(new EventListener(type, listener));
-    }
-
-    removeEventListener(type, listener) {
-        this.eventListeners.forEach((element) => {
-            if(element.type === type && element.listener.toString() === listener.toString()) {
-                this.eventListeners.splice(this.eventListeners.indexOf(element), 1)
-            }
-        });
-    }
-
-    dispatch(event) { 
-        this.eventListeners.forEach((eventListener) => {
-            if(eventListener.type === event.type) {
-                eventListener.listener(event.detail); 
-            }
-        }); 
-    }
-
-    refresh() {
-        if(document.getElementById(this.id) != null) {
-            document.getElementById(this.id).replaceWith(this.renderHtmlElement());
-        }
-    }
-
     renderHtmlElement() {
         let td = document.createElement("td");
         td.setAttribute("id", this.id);
@@ -214,21 +208,21 @@ class Cell {
                 td.addEventListener(element.type, element.listener)
         });
         
+        //console.log(this.parity);
         return td;
     }   
 }
 
-class Row {
-    constructor(id, width){
-        this.id = id;
+class Row extends Element{
+    constructor(id, width, parity){
+        super(id);
         this.width = width;
         this.col = [];
         this.totalCropCount = 0;
-
-        this.eventListeners = [];
+        this.parity = parity;
 
         for(let i = 0; i < this.width; i++) {
-            this.col[i] = new Cell(this.id+"_col"+i);
+            this.col[i] = new Cell(this.id+"_col"+i, i%2);
 
             this.col[i].addEventListener("harvest", this.harvest.bind(this));
             this.col[i].addEventListener("openCellMenu", this.openCellMenu.bind(this));
@@ -257,40 +251,13 @@ class Row {
 
     addCell() {
         this.width++; 
-        this.col[this.width - 1] = new Cell(this.id+"_col"+(this.width - 1), this.width);
-        
-        this.col[this.width - 1].addEventListener("harvest", this.harvest.bind(this));
+        this.col[this.width - 1] = new Cell(this.id+"_col"+(this.width - 1), (this.width-1)%2);
+
+         this.col[this.width - 1].addEventListener("harvest", this.harvest.bind(this));
         this.col[this.width - 1].addEventListener("openCellMenu", this.openCellMenu.bind(this));
         this.col[this.width - 1].addEventListener("closeCellMenu", this.closeCellMenu.bind(this));
 
         this.refresh();
-    }
-
-    //will be in a seperate class
-    addEventListener(type, listener) {
-        this.eventListeners.push(new EventListener(type, listener));
-    }
-
-    removeEventListener(type, listener) {
-        this.eventListeners.forEach((element) => {
-            if(element.type === type && element.listener.toString() === listener.toString()) {
-                this.eventListeners.splice(this.eventListeners.indexOf(element), 1)
-            }
-        });
-    }
-
-    dispatch(event) { 
-        this.eventListeners.forEach((eventListener) => {
-            if(eventListener.type === event.type) {
-                eventListener.listener(event.detail); 
-            }
-        }); 
-    }
-
-    refresh() {
-        if(document.getElementById(this.id) != null) {
-            document.getElementById(this.id).replaceWith(this.renderHtmlElement());
-        }
     }
 
     renderHtmlElement() {
@@ -299,25 +266,30 @@ class Row {
         tr.setAttribute("class", "row");        
 
         for(let i = 0; i < this.width; i++) {
-            tr.appendChild(this.col[i].renderHtmlElement());
+            let cell = this.col[i].renderHtmlElement();
+            if((this.parity + this.col[i].parity)%2 == 0) {
+                cell.classList.add("even");
+            }
+            else {
+                cell.classList.add("odd");
+            }
+            tr.appendChild(cell);
         }
 
         return tr;
     }
 }
 
-class Table {
+class Table extends Element{
     constructor(id, width, height){
-        this.id = id;
+        super(id);
         this.width = width;
         this.height = height;
         this.row = [];
         this.totalCropCount = 0;
 
-        this.eventListeners = [];
-
         for(let i = 0; i < this.height; i++) {
-            this.row[i] = new Row(this.id+"_row"+i, this.width);
+            this.row[i] = new Row(this.id+"_row"+i, this.width, i%2);
 
             this.row[i].addEventListener("harvest", this.harvest.bind(this));
             this.row[i].addEventListener("openCellMenu", this.openCellMenu.bind(this));
@@ -346,7 +318,7 @@ class Table {
 
     addRow() {
         this.height++;
-        this.row[this.height - 1] = new Row(this.id+"_row"+(this.height - 1), this.width);
+        this.row[this.height - 1] = new Row(this.id+"_row"+(this.height - 1), this.width, (this.height - 1)%2);
         this.row[this.height - 1].addEventListener("harvest", this.harvest.bind(this));
         this.row[this.height - 1].addEventListener("openCellMenu", this.openCellMenu.bind(this));
         this.row[this.height - 1].addEventListener("closeCellMenu", this.closeCellMenu.bind(this));
@@ -358,33 +330,6 @@ class Table {
         this.width++;
         for(let i = 0; i < this.height; i++) {
             this.row[i].addCell();
-        }
-    }
-
-    //will be in a seperate class
-    addEventListener(type, listener) {
-        this.eventListeners.push(new EventListener(type, listener));
-    }
-
-    removeEventListener(type, listener) {
-        this.eventListeners.forEach((element) => {
-            if(element.type === type && element.listener.toString() === listener.toString()) {
-                this.eventListeners.splice(this.eventListeners.indexOf(element), 1)
-            }
-        });
-    }
-
-    dispatch(event) { 
-        this.eventListeners.forEach((eventListener) => {
-            if(eventListener.type === event.type) {
-                eventListener.listener(event.detail); 
-            }
-        }); 
-    }
-
-    refresh() {
-        if(document.getElementById(this.id) != null) {
-            document.getElementById(this.id).replaceWith(this.renderHtmlElement());
         }
     }
 
@@ -401,12 +346,10 @@ class Table {
     }
 }
 
-class Farm{
+class Farm extends Element{
     constructor(id) {
-        this.id = id;
+        super(id);
         this.totalCropCount = 0;
-
-        this.eventListeners = [];
 
         this.width = 1;
         this.height = 1; 
@@ -448,36 +391,11 @@ class Farm{
         this.table.grow();
     }
 
-    //will be in a seperate class
-    addEventListener(type, listener) {
-        this.eventListeners.push(new EventListener(type, listener));
-    }
-
-    removeEventListener(type, listener) {
-        this.eventListeners.forEach((element) => {
-            if(element.type === type && element.listener.toString() === listener.toString()) {
-                this.eventListeners.splice(this.eventListeners.indexOf(element), 1)
-            }
-        });
-    }
-
-    dispatch(event) { 
-        this.eventListeners.forEach((eventListener) => {
-            if(eventListener.type === event.type) {
-                eventListener.listener(event.detail); 
-            }
-        }); 
-    }
-
-    refresh() {
-        if(document.getElementById(this.id) != null) {
-            document.getElementById(this.id).replaceWith(this.renderHtmlElement());
-        }
-    }
-
     renderHtmlElement() {
         let farm = document.createElement("div");
         farm.setAttribute("id", this.id);
+        farm.setAttribute("class", "farm");
+
         farm.appendChild(this.name.renderHtmlElement());
         farm.appendChild(this.totalCropCounter.renderHtmlElement());
         farm.appendChild(this.table.renderHtmlElement());
@@ -489,13 +407,12 @@ class Farm{
     }
 }
 
-class Farms {
+class Farms extends Element{
     constructor() {
-        this.id = "farms";
+        super("farms");
         this.totalCropCount = 0;
         this.count = 1;
         
-        this.eventListeners = [];
 
         this.farms = []
         for(let i = 0; i < this.count; i++) {
@@ -546,36 +463,11 @@ class Farms {
         this.refresh();
     }
 
-    //will be in a seperate class
-    addEventListener(type, listener) {
-        this.eventListeners.push(new EventListener(type, listener));
-    }
-
-    removeEventListener(type, listener) {
-        this.eventListeners.forEach((element) => {
-            if(element.type === type && element.listener.toString() === listener.toString()) {
-                this.eventListeners.splice(this.eventListeners.indexOf(element), 1)
-            }
-        });
-    }
-    
-    dispatch(event) { 
-        this.eventListeners.forEach((eventListener) => {
-            if(eventListener.type === event.type) {
-                eventListener.listener(event.detail); 
-            }
-        }); 
-    }
-
-    refresh() {
-        if(document.getElementById(this.id) != null) {
-            document.getElementById(this.id).replaceWith(this.renderHtmlElement());
-        }
-    }
-
     renderHtmlElement() {
         let farms = document.createElement("div");
         farms.setAttribute("id", this.id);
+        farms.setAttribute("class", "farms");
+
         farms.appendChild(this.totalCropCounter.renderHtmlElement());
         
         for(let i = 0; i < this.count; i++) {
@@ -660,10 +552,9 @@ class Farms {
     }
 }*/
 
-class CellMenu {
+class CellMenu extends Element{
     constructor() {
-        this.id = "cellMenu";
-        this.eventListeners = [];
+        super("cellMenu");
 
         this.cell = new Cell("");
 
@@ -711,33 +602,6 @@ class CellMenu {
 
         if(document.getElementById(this.id) != null) {
             document.body.removeChild(document.getElementById(this.id));
-        }
-    }
-
-    //will be in a seperate class
-    addEventListener(type, listener) {
-        this.eventListeners.push(new EventListener(type, listener));
-    }
-    
-    removeEventListener(type, listener) {
-        this.eventListeners.forEach((element) => {
-            if(element.type === type && element.listener.toString() === listener.toString()) {
-                this.eventListeners.splice(this.eventListeners.indexOf(element), 1)
-            }
-        });
-    }
-
-    dispatch(event) { 
-        this.eventListeners.forEach((eventListener) => {
-            if(eventListener.type === event.type) {
-                eventListener.listener(event.detail); 
-            }
-        }); 
-    }
-
-    refresh() {
-        if(document.getElementById(this.id) != null) {
-            document.getElementById(this.id).replaceWith(this.renderHtmlElement());
         }
     }
 
@@ -825,7 +689,3 @@ class Game {
 
 let game = new Game();
 document.body.appendChild(game.renderHtmlElement());
-
-
-//009409
-//$K$#1ab1
