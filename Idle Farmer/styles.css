@@ -30,7 +30,7 @@ html{
 
 .cell {
   border-collapse: collapse;
-  border: 1px solid darkgrey;
+  /*border: 1px solid darkgrey;*/
   margin: 0%;
   padding: 0%;
 
@@ -48,4 +48,19 @@ html{
   border: 1px solid grey;
   margin: 0%;
   padding: 0%;
+}
+
+.farm {
+}
+
+.farms {
+}
+
+.even {
+  background-color: palegreen;
+}
+
+.odd {
+  background-color: lightgreen;
+
 }
