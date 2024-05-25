@@ -62,15 +62,6 @@ class Button extends Element{
         this.text = text;
     }
 
-    //will be in a seperate class
-    addEventListener(type, listener) {
-        this.eventListeners.push(new EventListener(type, listener));
-    }
-
-    refresh() {
-        document.getElementById(this.id).replaceWith(this.renderHtmlElement());
-    }
-
     renderHtmlElement() {
         let button = document.createElement("button");
         button.setAttribute("id", this.id);
@@ -135,6 +126,12 @@ class Carrot extends Crop {
     }
 }
 
+class Worker extends Element{
+    constructor(id) {
+        super(id);
+    }
+}
+
 class Cell extends Element{
     constructor(id, parity){
         super(id);
@@ -142,9 +139,6 @@ class Cell extends Element{
         this.parity = parity;
 
         this.openMenu = false;
-        /*this.addEventListener("mouseover", () => {
-            this.dispatch(new CustomEvent("openCellMenu", {detail: {cell: this}}));
-        });*/
         this.clicked = false
         this.addEventListener("click", () => {
             this.dispatch(new CustomEvent("closeCellMenu", {detail: {cell: this}}));
@@ -156,9 +150,6 @@ class Cell extends Element{
                 this.dispatch(new CustomEvent("closeCellMenu", {detail: {cell: this}}));
             }
         });
-        /*this.addEventListener("mouseout", () => {
-            this.dispatch(new CustomEvent("closeCellMenu", {detail: {cell: this}}));
-        });*/
 
     }
 
@@ -177,10 +168,6 @@ class Cell extends Element{
             this.dispatch(new CustomEvent("grow", {detail: {cell: this}}));
         }
         this.crop.refresh();
-
-        //work in progress
-        //this.menu.maturityCounter.text = this.crop.maturity + "%";
-        //this.menu.refresh();
     }
 
     plant(cropName) {
@@ -202,13 +189,11 @@ class Cell extends Element{
         td.setAttribute("id", this.id);
         td.setAttribute("class", "cell");
         td.appendChild(this.crop.renderHtmlElement());
-        //td.appendChild(this.menu.renderHtmlElement());
 
         this.eventListeners.forEach((element) => {
                 td.addEventListener(element.type, element.listener)
         });
         
-        //console.log(this.parity);
         return td;
     }   
 }
@@ -481,77 +466,6 @@ class Farms extends Element{
     }
 }
 
-/*class Menu {
-    constructor(id) {
-        this.id = id;
-        this.eventListeners = [];
-
-        this.cropName = new Text(this.id+"_maturityCounter", "p", "");
-        this.maturityCounter = new Text(this.id+"_maturityCounter", "p", "");
-        this.plantPotatoButton = new Button(this.id+"_plantPotatoButton","🥔");
-
-        this.plantPotatoButton.addEventListener("click", () => {
-            this.dispatch(new CustomEvent("plant", {detail: {crop: "🥔"}}))
-        });
-
-        this.plantCarrotButton = new Button(this.id+"_plantCarrotButton","🥕");
-
-        this.plantCarrotButton.addEventListener("click", () => {
-            this.dispatch(new CustomEvent("plant", {detail: {crop: "🥕"}}))
-        });
-
-        this.cropOptions = [
-        ];
-
-        this.information = [
-            this.cropName,
-            this.maturityCounter
-        ];
-        this.cropOptionSelector = [
-            this.plantPotatoButton,
-            this.plantCarrotButton
-        ];
-
-    }
-
-    addEventListener(type, listener) {
-        this.eventListeners.push(new EventListener(type, listener));
-    }
-
-    dispatch(event) { 
-        this.eventListeners.forEach((eventListener) => {
-            if(eventListener.type === event.type) {
-                eventListener.listener(event.detail); 
-            }
-        }); 
-    }
-
-    refresh() {
-        document.getElementById(this.id).replaceWith(this.renderHtmlElement());
-    }
-
-    renderHtmlElement() {
-        let menu = document.createElement("menu");
-        menu.setAttribute("id", this.id);
-        menu.setAttribute("class", "menu");
-
-        this.information.forEach((element) => {
-            let li = document.createElement("li");
-            li.appendChild(element.renderHtmlElement());
-            menu.appendChild(li);
-        });
-
-        let cropOptionSelector = document.createElement("li");
-        this.cropOptionSelector.forEach((element) => {
-            cropOptionSelector.appendChild(element.renderHtmlElement());
-        });
-        menu.appendChild(cropOptionSelector);
-
-
-        return menu;
-    }
-}*/
-
 class CellMenu extends Element{
     constructor() {
         super("cellMenu");
@@ -634,13 +548,14 @@ class Store {
     constructor() {
         this.id = "store";
         this.crops = 0;
-        this.items = [new Potato(""), new Carrot("")];
+        this.cropsList = [new Potato(""), new Carrot("")];
+        this.workersList = []
 
         this.cellMenu = new CellMenu();
     }
 
     openCellMenu(detail) {
-        this.cellMenu.updateSelection(this.items);
+        this.cellMenu.updateSelection(this.cropsList);
         this.cellMenu.open(detail);
     }
 
