@@ -135,7 +135,7 @@ class Worker extends Element{
 class Cell extends Element{
     constructor(id, parity){
         super(id);
-        this.crop = new Carrot(this.id + "_crop");
+        this.crop = new Crop(this.id + "_crop");
         this.parity = parity;
 
         this.openMenu = false;
