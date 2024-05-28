@@ -150,13 +150,11 @@ class Cell extends Element{
                 this.dispatch(new CustomEvent("closeCellMenu", {detail: {cell: this}}));
             }
         });
-
     }
 
     harvest() {
         this.crop.harvest();
         this.dispatch(new CustomEvent("harvest", {detail: {crop: this.crop}}));
-        console.log("❗")
     }
 
     grow() {
@@ -179,9 +177,15 @@ class Cell extends Element{
             case "Carrot":
                 crop = new Carrot(this.id+"_crop");
                 break;
+            default: 
+                crop = new Crop(this.id + "_crop");
+                break;
         }
         this.crop = crop;
+        this.dispatch(new CustomEvent("plant", {detail: {crop: this.crop}}));
+
         this.crop.refresh();
+        console.log("❗");
     }
 
     renderHtmlElement() {
@@ -207,11 +211,7 @@ class Row extends Element{
         this.parity = parity;
 
         for(let i = 0; i < this.width; i++) {
-            this.col[i] = new Cell(this.id+"_col"+i, i%2);
-
-            this.col[i].addEventListener("harvest", this.harvest.bind(this));
-            this.col[i].addEventListener("openCellMenu", this.openCellMenu.bind(this));
-            this.col[i].addEventListener("closeCellMenu", this.closeCellMenu.bind(this));
+            this.addCell();
         }
     }
 
@@ -229,18 +229,24 @@ class Row extends Element{
     }
 
     grow() {
-        for(let i = 0; i < this.width; i++) {
-            this.col[i].grow();
-        }
+        this.col.forEach((element) => {
+            element.grow();
+        });
+    }
+
+    plant(detail) {
+        this.dispatch(new CustomEvent("plant", {detail}));   
+        console.log("❗❗")
     }
 
     addCell() {
-        this.width++; 
-        this.col[this.width - 1] = new Cell(this.id+"_col"+(this.width - 1), (this.width-1)%2);
+        this.col[this.col.length] = new Cell(this.id+"_col"+(this.col.length - 2), (this.col.length - 2)%2);
 
-         this.col[this.width - 1].addEventListener("harvest", this.harvest.bind(this));
-        this.col[this.width - 1].addEventListener("openCellMenu", this.openCellMenu.bind(this));
-        this.col[this.width - 1].addEventListener("closeCellMenu", this.closeCellMenu.bind(this));
+        this.col[this.col.length - 1].addEventListener("harvest", this.harvest.bind(this));
+        this.col[this.col.length - 1].addEventListener("plant", this.plant.bind(this));
+
+        this.col[this.col.length - 1].addEventListener("openCellMenu", this.openCellMenu.bind(this));
+        this.col[this.col.length - 1].addEventListener("closeCellMenu", this.closeCellMenu.bind(this));
 
         this.refresh();
     }
@@ -250,7 +256,7 @@ class Row extends Element{
         tr.setAttribute("id", this.id);
         tr.setAttribute("class", "row");        
 
-        for(let i = 0; i < this.width; i++) {
+        for(let i = 0; i < this.col.length; i++) {
             let cell = this.col[i].renderHtmlElement();
             if((this.parity + this.col[i].parity)%2 == 0) {
                 cell.classList.add("even");
@@ -274,11 +280,7 @@ class Table extends Element{
         this.totalCropCount = 0;
 
         for(let i = 0; i < this.height; i++) {
-            this.row[i] = new Row(this.id+"_row"+i, this.width, i%2);
-
-            this.row[i].addEventListener("harvest", this.harvest.bind(this));
-            this.row[i].addEventListener("openCellMenu", this.openCellMenu.bind(this));
-            this.row[i].addEventListener("closeCellMenu", this.closeCellMenu.bind(this));
+            this.addRow();
         }
     }
 
@@ -292,28 +294,33 @@ class Table extends Element{
 
     harvest(detail) {
         this.totalCropCount+=detail.crop.yeild;
-        this.dispatch(new CustomEvent("harvest", {detail}));        
+        this.dispatch(new CustomEvent("harvest", {detail}));
+      
     }
 
     grow() {
-        for(let i = 0; i < this.height; i++) {
-            this.row[i].grow();
-        }
+        this.row.forEach((element) => {element.grow()});
+    }
+
+    plant(detail) {
+        this.dispatch(new CustomEvent("plant", {detail}));   
+        console.log("❗❗❗")
     }
 
     addRow() {
-        this.height++;
-        this.row[this.height - 1] = new Row(this.id+"_row"+(this.height - 1), this.width, (this.height - 1)%2);
-        this.row[this.height - 1].addEventListener("harvest", this.harvest.bind(this));
-        this.row[this.height - 1].addEventListener("openCellMenu", this.openCellMenu.bind(this));
-        this.row[this.height - 1].addEventListener("closeCellMenu", this.closeCellMenu.bind(this));
+        this.row[this.row.length] = new Row(this.id+"_row"+(this.row.length - 2), this.width, (this.row.length - 2)%2);
+        this.row[this.row.length - 1].addEventListener("harvest", this.harvest.bind(this));
+        this.row[this.row.length - 1].addEventListener("plant", this.plant.bind(this));
+
+        this.row[this.row.length - 1].addEventListener("openCellMenu", this.openCellMenu.bind(this));
+        this.row[this.row.length - 1].addEventListener("closeCellMenu", this.closeCellMenu.bind(this));
 
         this.refresh();
     }
 
     addCol() {
         this.width++;
-        for(let i = 0; i < this.height; i++) {
+        for(let i = 0; i < this.row.length; i++) {
             this.row[i].addCell();
         }
     }
@@ -323,7 +330,7 @@ class Table extends Element{
         table.setAttribute("id", this.id);
         table.setAttribute("class", "table");        
 
-        for(let i = 0; i < this.height; i++) {
+        for(let i = 0; i < this.row.length; i++) {
             table.appendChild(this.row[i].renderHtmlElement());
         }
 
@@ -344,6 +351,8 @@ class Farm extends Element{
 
         this.table = new Table(this.id+"_table", this.width, this.height);        
         this.table.addEventListener("harvest", this.harvest.bind(this));
+        this.table.addEventListener("plant", this.plant.bind(this));
+
         this.table.addEventListener("openCellMenu", this.openCellMenu.bind(this));
         this.table.addEventListener("closeCellMenu", this.closeCellMenu.bind(this));
 
@@ -353,6 +362,9 @@ class Farm extends Element{
         this.addRowButton.addEventListener("click", this.table.addRow.bind(this.table));
         this.addColButton = new Button(this.id+"_addColButton", "Add Col");
         this.addColButton.addEventListener("click", this.table.addCol.bind(this.table));
+
+        //this.table.addRow();
+        //this.table.addCol();
     }
 
     openCellMenu(detail) {
@@ -374,6 +386,11 @@ class Farm extends Element{
 
     grow() {
         this.table.grow();
+    }
+
+    plant(detail) {
+        this.dispatch(new CustomEvent("plant", {detail}));  
+        console.log("❗❗❗❗") 
     }
 
     renderHtmlElement() {
@@ -403,6 +420,8 @@ class Farms extends Element{
         for(let i = 0; i < this.count; i++) {
             this.farms[i] = new Farm(this.id+"_farm"+i, this.store);
             this.farms[i].addEventListener("harvest", this.harvest.bind(this));
+            this.farms[i].addEventListener("plant", this.plant.bind(this));
+
             this.farms[i].addEventListener("openCellMenu", this.openCellMenu.bind(this));
             this.farms[i].addEventListener("closeCellMenu", this.closeCellMenu.bind(this));
         }
@@ -435,6 +454,11 @@ class Farms extends Element{
         for(let i = 0; i < this.count; i++) {
             this.farms[i].grow();
         }
+    }
+
+    plant(detail) {
+        this.dispatch(new CustomEvent("plant", {detail}));
+        console.log("❗❗❗❗❗")   
     }
 
     addFarm() {
@@ -544,10 +568,10 @@ class CellMenu extends Element{
 }
 
 //work in progress
-class Store {
+class Store extends Element{
     constructor() {
-        this.id = "store";
-        this.crops = 0;
+        super("store");
+        this.cropCount = 0;
         this.cropsList = [new Potato(""), new Carrot("")];
         this.workersList = []
 
@@ -568,27 +592,42 @@ class Game {
     constructor() {
         this.id = "game";
 
-        this.crops = 0;
+        this.cropCount = 0;
+        this.crops = [];
         this.farms = new Farms();
         this.store = new Store();
 
         this.farms.addEventListener("harvest", this.harvest.bind(this));
+        this.farms.addEventListener("plant", this.plant.bind(this));
+
         this.farms.addEventListener("openCellMenu", this.store.openCellMenu.bind(this.store));
         this.farms.addEventListener("closeCellMenu", this.store.closeCellMenu.bind(this.store));
 
 
         this.title = new Text("title", "h1", "Idle Farmer");
-        this.cropCounter = new Text("cropCounter", "h1", "Crops: "+this.crops);
+        this.cropCounter = new Text("cropCounter", "h1", "Crops: "+this.cropCount);
     }
 
     harvest(detail) {
-        this.store.crops+=detail.crop.yeild;
-        this.cropCounter.text = "Crops: "+this.store.crops;
+        this.store.cropCount+=detail.crop.yeild;
+        this.cropCounter.text = "Crops: "+this.store.cropCount;
         this.cropCounter.refresh();
     }
 
     grow() {
         this.farms.grow();
+    }
+
+    plant(detail) {
+        let i = this.crops.findIndex((element) => element.id == detail.crop.id);
+        if(i > -1){
+            this.crops[i] = detail.crop;
+        }
+        else{
+            this.crops.push(detail.crop);
+        }
+        console.log(this.crops);
+        console.log("❗❗❗❗❗❗");
     }
 
     renderHtmlElement() {
